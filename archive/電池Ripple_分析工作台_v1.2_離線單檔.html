@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>電池 Ripple 分析工作台</title><meta name="description" content="調整電流、頻率、阻抗與熱參數，估算電池漣波電壓、額外發熱與溫度老化敏感度。"><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23122236'/%3E%3Cpath d='M3 17h5l3-9 6 17 4-13 3 5h5' fill='none' stroke='%2343e0bb' stroke-width='2.5'/%3E%3C/svg%3E">
+<style>
+:root{--navy:#122236;--ink:#132c43;--muted:#586b7a;--line:#dbe4ed;--bg:#eef3f8;--green:#067563;--mint:#43e0bb;--blue:#0867cc;--orange:#b45309;--red:#bd2c34;--white:#fff}*{box-sizing:border-box}body{margin:0;font-family:Inter,"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:16px;line-height:1.55}button,input,select,textarea{font:inherit}button,a,input,select,textarea{touch-action:manipulation}button{cursor:pointer}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #08a592;outline-offset:3px}header{background:var(--navy);color:white;padding:22px 30px 0}.brand{display:flex;gap:16px;align-items:center;justify-content:space-between}.brand h1{font-size:25px;margin:0;letter-spacing:.01em}.brand p{color:#bfcedc;margin:4px 0 16px;font-size:14px}.badge{font-size:13px;background:#254158;border:1px solid #527085;padding:5px 10px;border-radius:5px;white-space:nowrap}nav{display:flex;gap:24px;flex-wrap:wrap}nav button{background:transparent;border:0;border-bottom:3px solid transparent;color:#b5c8da;padding:12px 0;font-weight:600}nav button[aria-selected="true"]{color:var(--mint);border-color:var(--mint)}main{max-width:1720px;margin:auto;padding:22px 28px 40px}.toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px}.toolbar p{margin:0 auto 0 0;font-size:14px;color:var(--muted)}.btn{border:1px solid #b9c9d6;background:white;color:var(--ink);padding:8px 13px;border-radius:5px;font-size:14px;font-weight:600}.btn.primary{background:var(--green);color:white;border-color:var(--green)}.btn:hover{filter:brightness(.97)}.workspace{display:grid;grid-template-columns:335px minmax(0,1fr);gap:22px}.panel{background:white;border:1px solid var(--line);border-radius:8px;overflow:hidden}.inputs{padding:20px;align-self:start}.section-head{display:flex;align-items:center;gap:9px;margin:0 0 16px;font-size:17px}.step{background:#e4f6f1;color:var(--green);font-size:12px;padding:3px 7px;border-radius:4px;letter-spacing:.08em}.fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{min-width:0}.field.full{grid-column:1/-1}label{display:block;font-size:14px;font-weight:550;margin-bottom:5px}.unit{font-weight:400;color:var(--muted)}input,select,textarea{width:100%;border:1px solid #b9c9d6;background:#fff;padding:8px 9px;border-radius:4px;color:var(--ink);min-height:42px}input[type=number]{font-variant-numeric:tabular-nums}select{font-size:14px}input:disabled,select:disabled{background:#f0f3f5;color:#7b8790}details{border-top:1px solid var(--line);margin-top:20px;padding-top:15px}summary{cursor:pointer;font-weight:650;font-size:15px;margin-bottom:14px}.hint{font-size:13px;color:var(--muted);margin:10px 0 0;line-height:1.6}.pill{display:inline-block;background:#e6f4ef;color:var(--green);font-size:12px;font-weight:600;border-radius:3px;padding:3px 8px}.pill.amber{background:#fff0d5;color:#9b5204}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}.metric{padding:17px;background:#fff;border:1px solid var(--line);border-radius:7px}.metric:first-child{background:var(--navy);color:white;border-color:var(--navy)}.metric:first-child .metric-label,.metric:first-child small{color:#bad0df}.metric-label{font-size:14px;color:var(--muted);margin-bottom:12px}.metric strong{display:block;font-size:28px;font-weight:650;line-height:1.15;font-variant-numeric:tabular-nums;letter-spacing:-.04em;overflow-wrap:anywhere}.metric strong span{font-size:16px;letter-spacing:0;margin-left:4px}.metric small{display:block;margin-top:10px;font-size:12px;color:var(--muted)}.content-panel{padding:22px;margin-bottom:18px}.panel-title{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:10px}.panel-title h2{font-size:19px;margin:0}.panel-title select{width:auto;min-width:115px}.chart{width:100%;display:block;min-width:0;aspect-ratio:760/230}.chart text{font-family:inherit;font-size:13px;fill:#586b7a}.chart path{vector-effect:non-scaling-stroke}.chart-wrap{border-bottom:1px solid #e8edf2;padding-bottom:6px;margin-bottom:12px}.legend{display:flex;gap:18px;font-size:13px;color:var(--muted);flex-wrap:wrap}.legend span:before{content:'';display:inline-block;width:17px;height:3px;background:var(--green);vertical-align:middle;margin-right:6px}.legend .blue:before{background:var(--blue)}.legend .orange:before{background:#d97706}.note{border-left:3px solid #c47d16;background:#fff8e9;padding:12px 16px;color:#785018;font-size:14px;line-height:1.65}.note.info{background:#edf6fe;border-color:#0867cc;color:#254d72}.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.kv{width:100%;border-collapse:collapse;font-size:14px}.kv th,.kv td{padding:10px 0;border-bottom:1px solid #e8edf2;text-align:left}.kv th{font-weight:400;color:var(--muted)}.kv td{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}.kv tr:last-child td,.kv tr:last-child th{border:0}.warnings{font-size:14px;color:var(--muted);padding-left:19px}.warnings li{margin:7px 0}.error{border:1px solid var(--red);background:#fff2f2;color:var(--red);padding:15px;border-radius:6px;margin-bottom:16px;white-space:pre-line}.tab{display:none}.tab.active{display:block}.hide{display:none!important}.page-copy{max-width:1200px;margin:auto}.page-copy h2{font-size:24px;margin:0 0 14px}.page-copy h3{font-size:18px;margin:24px 0 12px}.page-copy p{max-width:100ch}.audit-table{width:100%;border-collapse:collapse;font-size:15px}.audit-table th{background:var(--navy);color:white;font-weight:500;text-align:left}.audit-table td,.audit-table th{border-bottom:1px solid var(--line);padding:14px;vertical-align:top}.audit-table tr:nth-child(even){background:#f5f8fb}.scroll-table{overflow:auto}.formula{font-family:"Cambria Math",Consolas,monospace;background:#f0f5f9;padding:16px;overflow:auto;border-radius:5px;font-size:15px}.source{font-size:14px;color:var(--muted)}a{color:var(--blue);text-underline-offset:3px}.empty{padding:26px;text-align:center;background:#f4f7fa;border:1px dashed #bbcad6;border-radius:6px;color:var(--muted)}.empty strong{display:block;color:var(--ink);font-size:20px;margin-bottom:8px}textarea{font-family:Consolas,monospace;font-size:14px;min-height:200px}.soc-results{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}.soc-card{border:1px solid var(--line);padding:16px;border-radius:5px}.soc-card h3{font-size:14px;color:var(--muted);margin:0 0 8px}.soc-card strong{font-size:21px}.soc-card p{font-size:13px;margin:6px 0 0;color:var(--muted)}footer{font-size:12px;color:var(--muted);padding:22px 0 0;border-top:1px solid var(--line);margin-top:15px}.status{font-size:13px;color:var(--green);min-height:20px}.review-page{border-left:4px solid var(--blue);padding-left:20px;margin-bottom:28px}code{font-size:.92em}.topline{font-size:12px;color:var(--green);font-weight:700;letter-spacing:.1em;margin-bottom:8px}
+@media(max-width:1200px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.workspace{grid-template-columns:305px minmax(0,1fr)}.result-grid{grid-template-columns:1fr}.soc-results{grid-template-columns:1fr}.chart text{font-size:15px}}@media(max-width:800px){header{padding:18px 16px 0}.brand h1{font-size:22px}.brand .badge{display:none}nav{gap:18px}nav button{font-size:14px}main{padding:16px}.workspace{grid-template-columns:1fr}.inputs{order:0}.fields{grid-template-columns:1fr 1fr}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.metric strong{font-size:26px}.toolbar p{width:100%}.content-panel{padding:16px}.chart{aspect-ratio:760/280}.panel-title{align-items:flex-start}.audit-table{font-size:14px}.audit-table td,.audit-table th{padding:10px}.result-grid{grid-template-columns:1fr}}@media print{header,nav,.inputs,.toolbar,button,footer{display:none!important}.workspace{display:block}.tab{display:block!important}.panel{break-inside:avoid;margin-bottom:14px}body{background:white}.chart{max-height:240px}.page-copy{max-width:none}details{display:block}main{padding:0}}
+.workspace:has(#deepseekAudit.active){grid-template-columns:minmax(0,1fr)}
+#deepseekAudit .content-panel>h3{margin-top:0}
+.ds-fields{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+.ds-output{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin:16px 0}
+.ds-output>div{background:#f0f5f9;border:1px solid var(--line);padding:11px;border-radius:5px;font-variant-numeric:tabular-nums}
+.ds-output strong{display:block;font-size:21px;color:var(--green);overflow-wrap:anywhere}
+.ds-output .note{grid-column:1/-1}
+.ds-chart{aspect-ratio:760/220;max-height:275px}
+.ds-circuit{aspect-ratio:760/295;max-height:430px;margin-top:8px}
+#deepseekAudit .formula{margin-top:12px}
+#deepseekAudit .source li{margin-bottom:6px}
+@media(max-width:540px){.ds-fields,.ds-output{grid-template-columns:repeat(2,minmax(0,1fr))}.ds-chart,.ds-circuit{min-height:150px}}
+</style></head><body>
+<header><div class="brand"><div><h1>電池 Ripple 分析工作台</h1><p>電壓餘裕 · 額外發熱 · 溫度老化敏感度</p></div><span class="badge">工程估算 / v1.2</span></div><nav role="tablist" aria-label="分析頁籤"><button role="tab" aria-selected="true" data-tab="work" id="tab-work" aria-controls="work">估算工作台</button><button role="tab" aria-selected="false" data-tab="tradeoff" id="tab-tradeoff" aria-controls="tradeoff" tabindex="-1">單級充電取捨</button><button role="tab" aria-selected="false" data-tab="socPanel" id="tab-soc" aria-controls="socPanel" tabindex="-1">SOC 電壓窗</button><button role="tab" aria-selected="false" data-tab="review" id="tab-review" aria-controls="review" tabindex="-1">五頁校核</button><button role="tab" aria-selected="false" data-tab="guide" id="tab-guide" aria-controls="guide" tabindex="-1">操作與公式</button><button role="tab" aria-selected="false" data-tab="deepseekAudit" id="tab-deepseek" aria-controls="deepseekAudit" tabindex="-1">開關漣波校核</button></nav></header>
+<main>
+<div class="toolbar"><p>所有電流與阻抗均以同一模組端為基準。正值電流代表充電。</p><button class="btn" id="preset39">重設：39.03 A 原圖</button><button class="btn" id="preset75">重設：75 A 案例</button><button class="btn primary" id="export">匯出估算 CSV</button></div>
+<div id="status" class="status" role="status" aria-live="polite"></div><div id="error" class="error hide" role="alert"></div>
+<div id="calculator" class="workspace"><aside class="inputs panel"><h2 class="section-head"><span class="step">01</span> 電流與漣波</h2><form id="params" novalidate><div class="fields">
+<div class="field"><label for="idc">DC 電流 <span class="unit">A</span></label><input id="idc" name="idc" type="number" min="0" step="0.01"></div>
+<div class="field"><label for="ripple">Ripple 數值 <span class="unit">A</span></label><input id="ripple" name="ripple" type="number" min="0" step="0.01"></div>
+<div class="field"><label for="definition">數值定義</label><select id="definition" name="definition"><option value="pp">峰對峰 Ipp</option><option value="peak">單邊峰值 Ipk</option><option value="rms">AC RMS</option></select></div>
+<div class="field"><label for="wave">波形</label><select id="wave" name="wave"><option value="sine">正弦波</option><option value="triangle">對稱三角波</option><option value="square">對稱方波 50%</option></select></div>
+<div class="field"><label for="f">頻率 <span class="unit">Hz</span></label><input id="f" name="f" type="number" min="0.001" step="1"></div>
+<div class="field"><label for="capacity">模組容量 <span class="unit">Ah</span></label><input id="capacity" name="capacity" type="number" min="0.000001" step="1"></div></div>
+<details open><summary><span class="step">02</span> 阻抗與電壓</summary><div class="fields"><div class="field full"><label for="mode">阻抗模型</label><select id="mode" name="mode"><option value="resistor">純電阻近似：DC / AC 相同</option><option value="eis">單頻 EIS：分開 DC / AC</option><option value="rc">頻率相依：R₀ + Rₚ ∥ Cₚ</option></select></div>
+<div class="field full" data-mode="resistor"><label for="r">模組共同電阻 R <span class="unit">mΩ</span></label><input id="r" name="r" type="number" min="0" step="0.001"></div>
+<div class="field" data-mode="eis"><label for="rdc">DC 有效電阻 <span class="unit">mΩ</span></label><input id="rdc" name="rdc" type="number" min="0" step="0.001"></div><div class="field" data-mode="eis"><label for="re">AC Re{Z} <span class="unit">mΩ</span></label><input id="re" name="re" type="number" min="0" step="0.001"></div><div class="field full" data-mode="eis"><label for="im">AC Im{Z}（容性為負）<span class="unit">mΩ</span></label><input id="im" name="im" type="number" step="0.001"></div>
+<div class="field" data-mode="rc"><label for="r0">R₀ <span class="unit">mΩ</span></label><input id="r0" name="r0" type="number" min="0" step="0.001"></div><div class="field" data-mode="rc"><label for="rp">Rₚ <span class="unit">mΩ</span></label><input id="rp" name="rp" type="number" min="0" step="0.001"></div><div class="field full" data-mode="rc"><label for="tau">時間常數 τ = RₚCₚ <span class="unit">s</span></label><input id="tau" name="tau" type="number" min="0.000000001" step="0.001"></div>
+<div class="field"><label for="ns">串聯單體數 Ns</label><input id="ns" name="ns" type="number" min="1" step="1"></div><div class="field"><label for="ocv">工作點單體 OCV <span class="unit">V</span></label><input id="ocv" name="ocv" type="number" min="0.001" step="0.01"></div><div class="field"><label for="vmin">單體下限 <span class="unit">V</span></label><input id="vmin" name="vmin" type="number" min="0.001" step="0.01"></div><div class="field"><label for="vmax">單體上限 <span class="unit">V</span></label><input id="vmax" name="vmax" type="number" min="0.001" step="0.01"></div><div class="field full"><label for="soc">工作點 SOC（有曲線時使用）<span class="unit">%</span></label><input id="soc" name="soc" type="number" min="0" max="100" step="0.1"></div></div><p class="hint">預設 R = 0.040 V ÷ 5.38 A = 7.434944 mΩ，是由原圖反推的 |Z|，以純電阻重現；不等同實測 DCIR。16 串與 150 Ah 也由原圖標註推得，需確認。</p></details>
+<details open><summary><span class="step">03</span> 溫升與敏感度</summary><div class="fields"><div class="field full"><label for="thermal">散熱估算方式</label><select id="thermal" name="thermal"><option value="baseline">此工作點已知 DC 溫升</option><option value="theta">固定熱阻（同一散熱系統）</option></select></div><div class="field"><label for="ambient">環境溫度 <span class="unit">°C</span></label><input id="ambient" name="ambient" type="number" min="-100" max="150" step="1"></div><div class="field" data-thermal="baseline"><label for="rise">DC 基準溫升 <span class="unit">K</span></label><input id="rise" name="rise" type="number" min="0" step="0.1"></div><div class="field" data-thermal="theta"><label for="theta">模組熱阻 <span class="unit">K/W</span></label><input id="theta" name="theta" type="number" min="0" step="0.01"></div><div class="field full"><label for="ea">假設活化能 Ea <span class="unit">kJ/mol</span></label><input id="ea" name="ea" type="number" min="0" max="200" step="1"></div></div><p class="hint">40 kJ/mol 僅為沿用原稿的敏感度假設，非通用 LFP 壽命參數。穩態線性熱模型未含熵熱與熱暫態。</p></details></form></aside>
+<div id="results"><section id="work" class="tab active" role="tabpanel" aria-labelledby="tab-work"><div class="metrics" id="metrics"></div><div class="panel content-panel"><div class="panel-title"><h2>電流與端電壓波形</h2><select id="direction" aria-label="波形方向"><option value="charge">充電</option><option value="discharge">放電</option></select></div><div class="legend"><span>電流 / A</span><span class="blue">模組端電壓 / V</span></div><div id="currentChart" class="chart-wrap"></div><div id="voltageChart"></div><p id="voltageNote" class="hint"></p></div><div class="result-grid"><div class="panel content-panel"><div class="panel-title"><h2>電氣與熱量帳</h2><span class="pill">線性估算</span></div><table class="kv" id="electrical"></table></div><div class="panel content-panel"><div class="panel-title"><h2>溫度引起的速率變化</h2><span class="pill amber">非 SOH 損失</span></div><table class="kv" id="thermalResults"></table><p class="hint">Arrhenius 結果僅描述假設單一機制的溫度加速因子。缺少時間、基準衰退與實測模型，不能換算循環壽命或 SOH 百分點。</p></div></div><div class="panel content-panel"><h2 class="section-head">模型條件與提醒</h2><ul id="warnings" class="warnings"></ul></div></section>
+<section id="socPanel" class="tab" role="tabpanel" aria-labelledby="tab-soc"><div class="panel content-panel"><div class="topline">STATIC VOLTAGE WINDOW</div><div class="panel-title"><h2>SOC 電壓窗估算</h2><span class="pill amber" id="ocvLabel">尚未提供曲線</span></div><div class="note info">計算「充電最高電壓 ≤ 上限」與「放電最低電壓 ≥ 下限」的 SOC 交集，假設兩方向使用相同電流幅值。這是保守瞬時峰值模型；不代表 CC–CV 完整充電容量，也未模擬 BMS 濾波、延遲與單體不一致。</div><div id="socOutput" style="margin-top:16px"></div><div id="socChart"></div><div class="legend" id="socLegend"><span>OCV</span><span class="blue">DC 充／放電</span><span class="orange">加上 ripple 峰值包絡</span></div><div class="panel-title" style="margin-top:24px"><h2>輸入單體 OCV–SOC 曲線</h2><button class="btn" id="demo">載入示範曲線</button></div><label for="ocvText">每列：SOC 百分比, OCV 電壓；需含 0 與 100，依 SOC 遞增</label><textarea id="ocvText" placeholder="SOC_percent,OCV_V&#10;0,2.50&#10;...&#10;100,3.65" spellcheck="false"></textarea><div class="toolbar" style="margin-top:12px"><button class="btn primary" id="applyOCV">套用曲線</button><button class="btn" id="clearOCV">清除曲線</button><p>輸入後採分段線性內插，不外插。</p></div><p class="hint">示範曲線是人工建立的教學資料，不是原圖的曲線，也不是特定電芯規格。請以同溫度／健康狀態的準靜態 OCV 測量替換。若充放電遲滯明顯，須分方向建立模型；本版共用單一曲線。</p></div></section>
+<section id="tradeoff" class="tab" role="tabpanel" aria-labelledby="tab-tradeoff"><div class="panel content-panel"><div class="topline">CHARGER / BATTERY CO-DESIGN</div><h2>單級充電器省成本，合理嗎？</h2><div class="note info"><b>有條件合理。</b>把電池可接受的 ripple 納入充電器設計，可能降低級數、電容、磁性元件與散熱成本。但應先訂電池端的頻譜、RMS、峰值與溫升界限，再比較整機成本。</div><h3>先分清楚：級數不等於 ripple 大小</h3><p>單相、近似單位功率因數時，瞬時輸入功率含兩倍線頻脈動：50 Hz電網為100 Hz，60 Hz電網為120 Hz。若能量緩衝很少且電池電壓近似固定，電池電流可能接近0–2Idc。單級也能設計解耦；二級也能刻意容許ripple以縮小DC-link電容。理想平衡三相的總瞬時功率沒有相同的固有2f脈動。</p><div class="formula">p(t) = Pavg[1 − cos(2ωline t)]<br>i(t) ≈ Idc[1 − cos(2ωline t)]　[無顯著能量緩衝的理想單相例]<br>m = Ipk / Idc；Ipp / Idc = 2m<br>Pac/Pdc = ½m² × Re{Z}/Rdc　[正弦]</div><h3>以目前參數比較不同 ripple 幅度</h3><p class="hint" id="tradeoffBasis"></p><div class="scroll-table"><table class="audit-table"><thead><tr><th>m = Ipk/Idc</th><th>Ipp (A)</th><th>額外發熱</th><th>ΔTac (K)</th><th>溫度速率增量</th></tr></thead><tbody id="tradeoffRows"></tbody></table></div><p class="hint">表中強制使用正弦，各列保留目前阻抗與散熱設定。100%是單邊峰值／平均值，等於200%峰對峰／平均值。這是敏感度比較，不是任一單級充電器的保證輸出。</p><div class="toolbar" style="margin-top:14px"><button class="btn" data-ratio="0.2">試算20% / 120 Hz</button><button class="btn" data-ratio="0.5">試算50% / 120 Hz</button><button class="btn" data-ratio="1">試算100% / 120 Hz</button></div><div class="note">原圖5.38 App屬小幅ripple，且約10 kHz。評估單相單級方案時，要量測100／120 Hz及切換諧波；請同步輸入對應頻率的EIS。大幅ripple需驗證線性阻抗與穩態熱模型是否仍適用。</div><h3>建議保留三個方案比較</h3><div class="scroll-table"><table class="audit-table"><thead><tr><th>方案</th><th>可能節省</th><th>需納入的代價</th></tr></thead><tbody><tr><td>二級＋低ripple</td><td>作基準</td><td>完整轉換級與能量緩衝成本</td></tr><tr><td>單級＋受控ripple</td><td>轉換級／DC-link與被動元件</td><td>較高峰值／RMS、控制與EMI、散熱、電池驗證</td></tr><tr><td>部分解耦／縮小電容</td><td>折衷削減體積與BOM</td><td>小型解耦元件、控制複雜度</td></tr></tbody></table></div><p>成本判斷應用「BOM與製造節省 − 新增解耦／散熱／EMI／驗證成本 − 能耗差額 − 電池壽命與保固成本」。級數變少不保證整機效率或成本較佳；也不要把0.23%的速率數值直接換成電池折舊。</p><h3>驗收分兩層</h3><ol><li><b>短期電氣與熱：</b>相同平均充電任務、環境與冷卻條件，比較電芯／接點溫升、峰值電流、單體峰值電壓、CC–CV時間、充入Ah／Wh、BMS判斷，以及輸入功率品質／EMI。界限依電芯與系統規格制定。</li><li><b>中長期壽命：</b>同批DC與ripple對照，匹配SOC／DoD／Ah；一組同冷卻邊界比較總影響，另一組同電池溫度以分離直接ripple效應。以容量、阻抗與統計不確定度作判準。</li></ol><h3>與此用途直接相關的研究</h3><p><a href="https://doi.org/10.23919/EPE.2019.8915538" target="_blank" rel="noopener">Ghassemi et al., 2019</a>：13顆LFP的100 Hz實驗在其條件下未觀察顯著額外衰退，支持縮小電容的研究方向。<a href="https://doi.org/10.1016/j.apenergy.2022.118940" target="_blank" rel="noopener">2022延伸研究</a>指出幅度、頻率與極化需要合併判斷，低頻微循環可能增加衰退。以上已核對作者機構摘要，不能直接當作本電芯的允許值。</p><p><a href="https://doi.org/10.1109/TPEL.2015.2413815" target="_blank" rel="noopener">Xue et al., 2015</a>在二級架構實作容許兩倍線頻的正弦充電以縮小DC-link電容，說明可節省緩衝能量的方案不只「二級改一級」。</p><div class="note info">目前判定：值得做原型與電池共同設計；尚不足以批准全幅ripple量產。優先取得單／三相輸入、功率／電壓範圍、電芯型號、100／120 Hz實測ripple與EIS，以及兩種方案的成本差。</div></div></section></div></div>
+<section id="review" class="tab page-copy" role="tabpanel" aria-labelledby="tab-review"><div class="panel content-panel"><div class="topline">AUDIT / 2026-10-06</div><h2>原始五頁：可保留的推導與必要修正</h2><p>數字小，仍需要一致的基準與足夠的證據。以下將算術成立、模型條件與尚未驗證的結論分開。</p><div class="scroll-table"><table class="audit-table"><thead><tr><th>原頁</th><th>問題</th><th>修正後的表述</th></tr></thead><tbody>
+<tr><td>1｜總結／電壓</td><td>文字 75 A，波形均值約 ±39.03 A；5.38 A 未在總結註明 pp。熱與老化箭頭方向錯誤。</td><td>5.38 App = 2.69 Apk = 1.9021 Arms（正弦）。39.03 A、75 A 分開計算。40 mVpp 只反推出 |Z| ≈ 7.4349 mΩ；不可直接假設為 DCIR。</td></tr>
+<tr><td>2｜SOC 範圍</td><td>峰值標 79 A，與 75 + 2.69 = 77.69 A 不符。缺原始 OCV 表、電阻與精確端點。0.016% 的定義含糊。</td><td>0.016 數值保留為「未驗證」，不能由截图精確復算。以 OCV 反函數重算上下界，分別列 SOC 百分點損失與相對縮減率。1.15 V 是設定門檻差，不是可用容量。</td></tr>
+<tr><td>3｜熱影響</td><td>0.24% 只適用 39.03 A 且 AC/DC 同電阻。稱與內阻無關過度簡化。</td><td>Pac/Pdc = (Iac,rms/Idc)² × Re{Z}/Rdc。原圖條件為 +0.237508%；75 A 同 ripple 時為 +0.064321%。這是額外發熱功率比例。</td></tr>
+<tr><td>4｜老化</td><td>Arrhenius 指數少負號；比值與增量混淆；以速率增量直接稱 SOH degradation。</td><td>k = A exp(−Ea/RT)。AF = exp[(Ea/R)(1/Tdc − 1/Tac)]。原圖條件 AF ≈ 1.002260；速率增加 +0.225993%，不是 SOH 減少 0.23 個百分點。</td></tr>
+<tr><td>5｜文獻</td><td>作者與年份誤植；將指定條件的結果擴張為無直接老化、>10 Hz 無影響、額外老化 <0.15%。</td><td>移除通用 10 Hz 與 0.15% 上限；改為電芯、波形、幅度、SOC 與溫控條件相關，需匹配實測。</td></tr>
+</tbody></table></div><h3>文獻核對</h3><p><b>Uddin et al., 2016</b>：原稿誤寫 2021；原文觀察到 AC–DC 測試組衰退與阻抗增加、分散程度擴大，不能用作高頻一定無害的證據。<a href="https://doi.org/10.1016/j.apenergy.2016.06.033" target="_blank" rel="noopener">原論文</a></p><p><b>Steinstraeter et al., 2022</b>：比較 10、400、5,000 Hz；10 Hz 組老化較明顯，兩個較高頻組未見相對 DC 的異常。不能建立所有電芯的 10 Hz 分界。<a href="https://doi.org/10.1016/j.est.2022.104009" target="_blank" rel="noopener">原論文</a></p><p><b>Kwak, Kim &amp; Kim, 2021</b>：原稿所列題名的作者不是 Besheer。已核對 IEEE 議程與書目，未取得足以支持「無直接老化」量化結論的全文。<a href="https://doi.org/10.1109/ECCE47101.2021.9594959" target="_blank" rel="noopener">論文 DOI</a></p><p><b>Bala et al., 2012</b>：研究針對 LFP 系統的低頻 ripple 與熱／平衡／往返效率；本文未取得可核讀的完整一手實驗資料，故不將其當成通用壽命或 <0.15% 的證據。<a href="https://doi.org/10.1109/ECCE.2012.6342318" target="_blank" rel="noopener">論文 DOI</a></p><p><b>Korth Pereira Ferraz &amp; Kowal, 2019</b>：在其 NMC 18650 與約 5 kHz 轉換器測試條件下，ripple 效應未明顯超過循環深度造成的衰退；不宜推廣為所有 LFP 的保證。<a href="https://doi.org/10.3390/su11216050" target="_blank" rel="noopener">原論文</a></p><div class="note">修正後結論：小幅 ripple 在指定線性模型下增加的發熱可能很小；SOC 影響需 OCV 與控制資料，實際壽命影響需電芯與工況相符的實驗。</div></div></section>
+<section id="deepseekAudit" class="tab page-copy" role="tabpanel" aria-labelledby="tab-deepseek">
+  <div class="panel content-panel">
+    <div class="topline">電池端開關漣波</div>
+    <h2>占空比、發熱與濾波拓樸</h2>
+    <p>比較基準為相同平均電池電流。若電池實際承受 0～1 A、50% 占空比的方波，總 RMS 為 0.707 A，比 0.5 A DC 高 41.4%。在 AC 與 DC 等效電阻相同時，平均電阻發熱增加 <b>100%</b>。</p>
+    <details><summary>DeepSeek 兩段回覆的校核結果</summary>
+      <div class="scroll-table"><table class="audit-table"><thead><tr><th scope="col">原回覆要點</th><th scope="col">校核結果</th></tr></thead><tbody>
+        <tr><td>方波總 RMS 約 0.707 A</td><td><b>正確。</b> AC 分量 RMS 另為 0.500 A。RMS 電流與發熱功率的增幅要分開計算。</td></tr>
+        <tr><td>40% 額外發熱，且是上界</td><td><b>修正。</b> 0.5R W 對 0.25R W 是兩倍。固定平均電流且低態為零時，總發熱比為 1/D。只有固定上下限、平均值與純電阻模型時，端點間的兩階波形才是該組條件的均方值上界。</td></tr>
+        <tr><td>實際電池端通常是三角波或梯形波</td><td><b>視拓樸與量測點。</b> CCM Buck 的相電感電流近似三角波。電池端波形還受輸出電容、電池阻抗、配線與控制影響。切換單元若直接讓電池承受全幅脈衝，應用實測電池電流計算。若電池端實測為 0.3～0.7 A 三角波，AC RMS 約 0.115 A，在相同電阻下比 0.5 A DC 多 5.33% 電阻熱。</td></tr>
+        <tr><td>TI 的 √[D(1−D)] 說明 Cbat 電流</td><td><b>修正。</b> BQ25758S §8.2.1.2.4 式 (10) 用於輸入電容，輸出電容另見 §8.2.1.2.5 式 (11)。Buck 電感漣波式 (9) 在 Vin、L、fs 固定時隨 D(1−D) 變化。三者對應不同電流。</td></tr>
+        <tr><td>並聯輸出電容可分流漣波</td><td><b>有條件成立。</b> 用複數阻抗做電流分流。電容 ESR、ESL、配線與電池阻抗決定衰減，接近共振時也可能放大。電容支路應校核自身 RMS 電流。</td></tr>
+        <tr><td>交錯與耦合電感可達零漣波</td><td><b>有條件成立。</b> 理想等相位 CCM Buck 在特定占空比可消除合成開關漣波。磁耦合可降低相電流漣波，ZCR 需要指定拓樸與磁件條件。單相市電的 100／120 Hz 功率脈動仍需能量緩衝。</td></tr>
+        <tr><td>室溫下 40 App、250 kHz 幾乎不影響壽命</td><td><b>未採用該數值作設計依據。</b> 本次無法取得該研究全文來核對測試條件。發熱、電化學老化與低溫充電風險應依電芯、頻譜、SOC、溫度與實測評估。電阻熱模型無法直接預測 SOH。</td></tr>
+      </tbody></table></div>
+    </details>
+  </div>
+
+  <div class="panel content-panel">
+    <h3>電池實際承受兩階電流時的發熱</h3>
+    <p>輸入電池支路量到的高、低電流及高態時間比例。Rac 是對漣波頻譜採用的等效耗散電阻。</p>
+    <div class="fields ds-fields">
+      <label>高態電流（A）<input id="dsIon" type="number" step="any" value="1"></label>
+      <label>低態電流（A）<input id="dsIoff" type="number" step="any" value="0"></label>
+      <label>占空比（%）<input id="dsDuty" type="number" min="0" max="100" step="any" value="50"></label>
+      <label>DC 電阻（mΩ）<input id="dsRdc" type="number" min="0" step="any" value="7.434944"></label>
+      <label>AC 等效電阻（mΩ）<input id="dsRac" type="number" min="0" step="any" value="7.434944"></label>
+    </div>
+    <div id="dsHeat" class="ds-output" aria-live="polite"></div>
+    <svg id="dsPulseChart" class="chart ds-chart" viewBox="0 0 760 220" role="img" aria-label="兩階電流與同平均值直流比較"></svg>
+    <div class="legend"><span>電池電流</span><span class="blue">同平均值 DC</span></div>
+    <div class="formula">Iavg = D·Ion + (1−D)·Ioff<br>Irms = √[D·Ion² + (1−D)·Ioff²]<br>Iac,rms = |Ion−Ioff|√[D(1−D)]<br>Pdc = Iavg²·Rdc，ΔP = Iac,rms²·Rac</div>
+    <p class="hint">若阻抗隨頻率變化，以各諧波的 RMS² 乘上該頻率的 Re{Z} 再求和。當電流反向時，本區仍只計算電阻耗散。</p>
+  </div>
+
+  <div class="panel content-panel">
+    <h3>輸出電容分流多少電流？</h3>
+    <p>指定一個頻率下的電池複數阻抗與電容參數。把上游漣波視為注入輸出節點的單頻電流源。</p>
+    <div class="fields ds-fields">
+      <label>漣波頻率（Hz）<input id="dsFreq" type="number" min="0.001" step="any" value="10000"></label>
+      <label>輸出電容（µF）<input id="dsCap" type="number" min="0" step="any" value="470"></label>
+      <label>電容 ESR（mΩ）<input id="dsEsr" type="number" min="0" step="any" value="5"></label>
+      <label>電容 ESL（nH）<input id="dsEsl" type="number" min="0" step="any" value="10"></label>
+      <label>Re{Zbat}（mΩ）<input id="dsRbat" type="number" min="0.000001" step="any" value="7.434944"></label>
+      <label>Im{Zbat}（mΩ）<input id="dsXbat" type="number" step="any" value="0"></label>
+      <label>上游注入 AC RMS（A）<input id="dsInj" type="number" min="0" step="any" value="1"></label>
+    </div>
+    <p><button class="btn" type="button" data-ds-freq="100">比較 100 Hz</button> <button class="btn" type="button" data-ds-freq="120">比較 120 Hz</button> <button class="btn" type="button" data-ds-freq="10000">比較 10 kHz</button></p>
+    <div id="dsSplit" class="ds-output" aria-live="polite"></div>
+    <p class="hint">頻率按鈕只改 f。比較實際頻點時，請同步輸入該頻率的 Zbat。兩支路電流為相量，RMS 幅值不能直接相加。</p>
+    <div class="formula">Zc = ESR + j(2πf·ESL − 1/(2πf·C))<br>Ibat / Iinj = Zc / (Zbat + Zc)<br>IC / Iinj = Zbat / (Zbat + Zc)</div>
+  </div>
+
+  <div class="panel content-panel">
+    <h3>多相交錯如何改變輸出漣波？</h3>
+    <p>等值獨立電感、等相位間隔與連續導通（CCM）的理想 Buck。圖中只畫出各相與合流的 AC 分量，合流點位於 Cbat 分流之前。</p>
+    <div class="fields ds-fields">
+      <label>相數 N<select id="dsPhases"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
+      <label>Buck 占空比（%）<input id="dsBuckDuty" type="number" min="0.01" max="99.99" step="any" value="50"></label>
+      <label>輸入電壓（V）<input id="dsVin" type="number" min="0.01" step="any" value="100"></label>
+      <label>單相電感（µH）<input id="dsL" type="number" min="0.01" step="any" value="100"></label>
+      <label>每相開關頻率（kHz）<input id="dsFs" type="number" min="0.01" step="any" value="100"></label>
+    </div>
+    <div id="dsInterleave" class="ds-output" aria-live="polite"></div>
+    <svg id="dsPhaseChart" class="chart ds-chart" viewBox="0 0 760 220" role="img" aria-label="各相和合流點的開關漣波波形"></svg>
+    <div class="legend"><span>合流漣波</span><span class="blue">各相漣波（虛線）</span></div>
+    <p class="hint">當 ND 為整數時，理想模型的合流開關漣波為零。實機仍受相位誤差、電感公差、均流、死區和導通模式影響。若每相平均電流低於漣波峰值，需另檢查斷續或反向導通。</p>
+  </div>
+
+  <div class="panel content-panel">
+    <h3>電路接法與原廠參考</h3>
+    <label for="dsTopology">顯示功率級接法</label>
+    <select id="dsTopology"><option value="1">同步 Buck ＋ 並聯 Cbat</option><option value="2">雙相交錯 Buck ＋ 並聯 Cbat</option><option value="3">雙相交錯 Buck ＋ 耦合電感</option></select>
+    <svg id="dsCircuit" class="chart ds-circuit" viewBox="0 0 760 295" role="img" aria-label="同步 Buck 功率級與電池支路原理圖"></svg>
+    <p id="dsTopologyHint" class="hint"></p>
+    <p class="hint">圖示為功率級原理，省略控制、體二極體、保護與元件選型。耦合版用點標示繞組極性，定量波形工具使用獨立電感模型。</p>
+    <details><summary>原廠文件與論文連結（閱讀原文需連網）</summary>
+      <ul class="source">
+        <li>輸入與輸出電容的額定電流分開估算。<a href="https://www.ti.com/lit/ds/symlink/bq25758s.pdf">TI BQ25758S §8.2.1.2.3–5</a></li>
+        <li>同步 Buck 充電器與輸出電容的典型接法。<a href="https://www.ti.com/lit/ds/symlink/bq25606.pdf">TI BQ25606 §10.2</a></li>
+        <li>120 Vac／200 W 交錯 Flyback 電池充電設計。<a href="https://www.ti.com/tool/TIDA-00200">TI TIDA-00200</a> · <a href="https://www.ti.com/lit/pdf/TIDRA05">原理圖</a></li>
+        <li>600 W 雙相交錯雙向 Buck 功率級。<a href="https://www.ti.com/tool/TIDA-010087">TI TIDA-010087</a> · <a href="https://www.ti.com/lit/pdf/TIDMBN8">原理圖</a></li>
+        <li>耦合電感原理及 2 kW 四相實例。<a href="https://www.analog.com/media/en/technical-documentation/tech-articles/the-benefits-of-the-coupled-inductor-technology.pdf">ADI 技術文章</a> · <a href="https://www.ti.com/tool/TIDM-02022">TI TIDM-02022</a></li>
+        <li>特定低漣波雙向充放電拓樸。Virginia Tech 收錄為碩士論文。<a href="https://vtechworks.lib.vt.edu/items/a2c20959-c094-4398-bd5a-d6ed7ac81c97">Virginia Tech 碩士論文</a></li>
+        <li>450 W 四相交錯 Buck 實例。<a href="https://www.ti.com/tool/PMP41158">TI PMP41158</a></li>
+        <li>被引用的低溫加熱與壽命研究。<a href="https://doi.org/10.1016/j.fub.2025.100036">原論文 DOI</a></li>
+        <li>本次校核的<a href="https://chat.deepseek.com/share/7kh0st3tcgzcp2kx8e">DeepSeek 分享對話</a>。</li>
+      </ul>
+    </details>
+  </div>
+</section>
+<section id="guide" class="tab page-copy" role="tabpanel" aria-labelledby="tab-guide"><div class="panel content-panel"><h2>先統一量測基準，再調整參數</h2><ol><li>選擇 39.03 A 原圖或 75 A 案例。兩者預設都使用 5.38 App 正弦 ripple 與該工作點 20 K DC 溫升。</li><li>確認 ripple 為峰對峰、峰值或 RMS。只填 AC 分量；不要把含 DC 的總 RMS 當作 AC RMS。</li><li>選阻抗模型。已知 EIS 時，輸入同一模組、同 SOC／溫度／頻率的 Re{Z}、Im{Z}，另填 DC 有效電阻。1RC 模式會由頻率計算阻抗。</li><li>跨電流比較同一散熱系統，使用固定熱阻；若有各工況的實測 DC 溫升，可分別使用基準溫升模式。</li><li>進入「SOC 電壓窗」，貼上實測 OCV–SOC 表並套用。未提供曲線時不輸出 SOC 縮減數字。</li><li>匯出 CSV，保留參數、單位、曲線來源與估算結果。所有計算在瀏覽器內執行，重新整理會回到預設；請先匯出。</li></ol>
+<h3>電流與發熱</h3><div class="formula">i(t) = Idc + iac(t), &lt;iac&gt; = 0<br>Iac,rms = Ipp / (2√2)　[正弦]<br>Iac,rms = Ipp / (2√3)　[對稱三角波]<br>Iac,rms = Ipp / 2　[對稱方波]<br>Itotal,rms = √(Idc² + Iac,rms²)<br>Pdc = Idc² Rdc<br>Pac = Iac,rms² Re{Z(f)}<br>ηheat = Pac / Pdc<br>ΔVpp = Ipp |Z(f)|　[單頻正弦]</div>
+<p>只有 AC 與 DC 等效電阻相同時，發熱比例中的電阻才可約去。多諧波需用 Σ In,rms² Re{Z(nf)}；本版非正弦波只開放頻率無關的純電阻近似。感抗／容抗影響電壓幅度與相位，不直接作為損耗電阻。</p>
+<h3>頻率與 1RC</h3><div class="formula">Z(ω) = R₀ + Rₚ / (1 + jωτ)<br>Re{Z} = R₀ + Rₚ / [1 + (ωτ)²]<br>Im{Z} = −Rₚωτ / [1 + (ωτ)²]<br>Rdc = R₀ + Rₚ；ω = 2πf</div><p>此 DC 值代表 1RC 的長時間極限。若採用脈衝 DCIR，必須註明脈衝時間。高頻電感與導線壓降應在量測參考面中清楚定義。</p>
+<h3>SOC 上下界</h3><div class="formula">d = Idc Rdc / Ns，a = Ipk |Z| / Ns<br>DC：Vmin + d ≤ OCV(SOC) ≤ Vmax − d<br>DC + ripple：Vmin + d + a ≤ OCV(SOC) ≤ Vmax − d − a<br>ΔSOC_pp = SpanDC − Spanripple　[百分點]<br>Relative reduction = ΔSOC_pp / SpanDC × 100%</div><p>均衡且一致的串聯單體是假設。並聯結構只要電流、容量、阻抗皆以模組端輸入即可；本版不分析支路分流。圖中單體電壓由模組電壓除 Ns 推得，不能代表最差單體。</p>
+<h3>穩態熱與 Arrhenius</h3><div class="formula">Rθ = ΔTdc / Pdc　[已知基準溫升模式]<br>ΔTac = Pac Rθ<br>Tdc,K = Tamb + ΔTdc + 273.15<br>Tac,K = Tdc,K + ΔTac<br>AF = exp[(Ea / Rg)(1/Tdc,K − 1/Tac,K)]<br>Rate increase = (AF − 1) × 100%；Rg = 8.314462618 J/(mol·K)</div><p>熱阻對應同一模組與散熱邊界。模型僅以平均不可逆電阻損耗估算溫升，忽略可逆熵熱、熱梯度與暫態。若已知溫升還含其他熱源，不可直接反推為相同的電阻發熱熱阻。</p>
+<h3>工程驗收資料</h3><p>至少需要：電芯型號／串並數、ripple 實測波形與頻譜、相關頻率 EIS、指定時間尺度的 DCIR、各溫度 OCV–SOC、BMS 取樣／濾波／去抖時間、CC–CV 與截止條件、同散熱邊界的溫升實驗。要下 SOH 結論，需有匹配工況的 DC 對照組、溫度控制、重複樣本與容量／阻抗追蹤。</p><div class="note">目前提供的是可重現的工程敏感度估算，未建立特定電芯的 SOH 或安全充電界限。閾值應使用電芯規格與實驗驗證。</div></div></section>
+<footer>Battery Ripple Lab v1.2 · 2026-11-12 · 預設值用於原圖算術重現；SOC 原值 0.016% 尚未驗證。</footer></main>
+<script>
+/* Battery Ripple Lab v1.2 | Units: A, Hz, module mΩ, K/W, seconds, cell V. */
+(function(root){
+ 'use strict';
+ const VERSION='1.2.0';
+ const defaults={idc:39.03,ripple:5.38,definition:'pp',wave:'sine',f:10000,mode:'resistor',r:40/5.38,rdc:40/5.38,re:40/5.38,im:0,r0:5,rp:2.434944237918216,tau:0.1,ns:16,capacity:150,soc:50,vmin:2.5,vmax:3.65,ocv:3.25,thermal:'baseline',ambient:25,rise:20,theta:1.7658555612863802,ea:40};
+ const demoOCV='SOC_percent,OCV_V\n0,2.50\n0.05,2.515\n0.1,2.70\n1,2.99\n5,3.10\n10,3.16\n20,3.20\n50,3.25\n80,3.30\n90,3.35\n95,3.40\n99,3.50\n99.8,3.62\n100,3.65';
+ function validate(p){
+  const err=[];
+  const bounds={idc:[0,100000],ripple:[0,100000],f:[0.001,10000000],r:[0,100000],rdc:[0,100000],re:[0,100000],im:[-100000,100000],r0:[0,100000],rp:[0,100000],tau:[0.000000001,1000000],ns:[1,10000],capacity:[0.000001,1000000],soc:[0,100],vmin:[0.001,10],vmax:[0.001,10],ocv:[0.001,10],ambient:[-100,150],rise:[0,300],theta:[0,1000000],ea:[0,200]};
+  for(const [k,[a,b]] of Object.entries(bounds))if(!Number.isFinite(p[k])||p[k]<a||p[k]>b)err.push(`${k} 必須介於 ${a} 與 ${b}。`);
+  if(!Number.isInteger(p.ns))err.push('串數 Ns 必須為整數。');
+  if(p.vmin>=p.vmax)err.push('上限電壓必須大於下限電壓。');
+  for(const [k,options] of Object.entries({definition:['pp','peak','rms'],wave:['sine','triangle','square'],mode:['resistor','eis','rc'],thermal:['baseline','theta']}))if(!options.includes(p[k]))err.push(`${k} 選項無效。`);
+  if(p.mode!=='resistor'&&p.wave!=='sine')err.push('複數阻抗與 1RC 模式目前只接受單頻正弦波。');
+  return err;
+ }
+ function parseOCV(text){
+  if(!text.trim())return null;
+  const lines=text.trim().split(/\r?\n/), rows=[];
+  lines.forEach((line,i)=>{if(!line.trim())return; const c=line.trim().split(/[,;\t ]+/); if(i===0&&/^soc/i.test(c[0]))return;
+   if(c.length!==2||c.some(x=>!x.trim()||!Number.isFinite(Number(x))))throw Error(`OCV 第 ${i+1} 列必須為 SOC(%),OCV(V) 兩個數值。`);
+   rows.push(c.map(Number));
+  });
+  if(rows.length<2)throw Error('OCV 至少需要兩個點。');
+  for(let i=0;i<rows.length;i++){
+   const [s,v]=rows[i];if(s<0||s>100||v<=0||v>10)throw Error('OCV 的 SOC 必須為 0–100%，單體電壓必須為 0–10 V。');
+   if(i&&(s<=rows[i-1][0]||v<rows[i-1][1]))throw Error('OCV 資料需按 SOC 嚴格遞增排序，電壓需單調不減；請勿用帶負载曲線。');
+  }
+  if(rows[0][0]!==0||rows.at(-1)[0]!==100)throw Error('OCV 資料需涵蓋 0% 與 100%；不做端點外插。');
+  return rows;
+ }
+ function ocvAt(rows,soc){if(!rows)return null; for(let i=1;i<rows.length;i++){if(soc<=rows[i][0]){const [s0,v0]=rows[i-1],[s1,v1]=rows[i];return v0+(v1-v0)*(soc-s0)/(s1-s0);}}return rows.at(-1)[1];}
+ function lowerSOC(rows,v){if(v>rows.at(-1)[1])return null;if(v<=rows[0][1])return 0;for(let i=1;i<rows.length;i++){const [s0,v0]=rows[i-1],[s1,v1]=rows[i];if(v1>=v)return s0+(v-v0)*(s1-s0)/(v1-v0);}return null;}
+ function upperSOC(rows,v){if(v<rows[0][1])return null;if(v>=rows.at(-1)[1])return 100;for(let i=rows.length-2;i>=0;i--){const [s0,v0]=rows[i],[s1,v1]=rows[i+1];if(v0<=v)return s0+(v-v0)*(s1-s0)/(v1-v0);}return null;}
+ function windowFor(rows,lo,hi){const min=lowerSOC(rows,lo),max=upperSOC(rows,hi);const valid=min!==null&&max!==null&&max>=min;return {min,max,span:valid?max-min:0,valid};}
+ function calculate(input,rows=null){
+  const p={...defaults,...input};const errors=validate(p);if(errors.length)throw Error(errors.join('\n'));
+  const factor={sine:Math.SQRT2,triangle:Math.sqrt(3),square:1}[p.wave];
+  const peak=p.definition==='pp'?p.ripple/2:p.definition==='peak'?p.ripple:p.ripple*factor;
+  const rms=peak/factor,pp=2*peak;
+  let rdc,re,im;
+  if(p.mode==='resistor'){rdc=re=p.r/1000;im=0;}
+  else if(p.mode==='eis'){rdc=p.rdc/1000;re=p.re/1000;im=p.im/1000;}
+  else {const wTau=2*Math.PI*p.f*p.tau;rdc=(p.r0+p.rp)/1000;re=(p.r0+p.rp/(1+wTau*wTau))/1000;im=-p.rp*wTau/(1+wTau*wTau)/1000;}
+  const z=Math.hypot(re,im),phase=Math.atan2(im,re),vpeak=peak*z,vpp=2*vpeak;
+  const pdc=p.idc*p.idc*rdc,pac=rms*rms*re,heatRatio=pdc>0?pac/pdc:null;
+  const theta=p.thermal==='theta'?p.theta:(pdc>0?p.rise/pdc:null);
+  const riseDC=p.thermal==='theta'?pdc*theta:p.rise;
+  const riseAC=theta===null?null:pac*theta;
+  const tdc=p.ambient+riseDC;
+  const ageFactor=riseAC===null?null:Math.exp(p.ea*1000/8.314462618*(1/(tdc+273.15)-1/(tdc+273.15+riseAC)));
+  const cellOCV=rows?ocvAt(rows,p.soc):p.ocv;
+  const dcDrop=p.idc*rdc/p.ns,acCellPeak=vpeak/p.ns;
+  const dcWindow=rows?windowFor(rows,p.vmin+dcDrop,p.vmax-dcDrop):null;
+  const rippleWindow=rows?windowFor(rows,p.vmin+dcDrop+acCellPeak,p.vmax-dcDrop-acCellPeak):null;
+  const lossPP=rows?Math.max(0,dcWindow.span-rippleWindow.span):null;
+  const lossRelative=rows&&dcWindow.span>0?lossPP/dcWindow.span:null;
+  const chargeMean=cellOCV+dcDrop,dischargeMean=cellOCV-dcDrop;
+  const chargePeak=chargeMean+acCellPeak,dischargeTrough=dischargeMean-acCellPeak;
+  const dcCap=rows?p.capacity*dcWindow.span/100:null,acCap=rows?p.capacity*rippleWindow.span/100:null;
+  const warnings=[];
+  if(p.idc>0&&peak/p.idc>0.2)warnings.push('目前 ripple 幅度較大；線性小訊號阻抗與穩態熱外推需用實測確認，不能只靠 Arrhenius 判定可用。');
+  if(peak>p.idc)warnings.push('Ripple 峰值大於 DC 電流，瞬間會反向；溫度因子無法描述全部微循環老化。');
+  if(heatRatio===null)warnings.push('DC 發熱為零，額外發熱百分比無定義；請查看 Pac 的絕對值。');
+  if(theta===null)warnings.push('無法由零 DC 發熱反推熱阻，請切換「固定熱阻」。');
+  if(p.thermal==='baseline')warnings.push('固定此工作點的 DC 溫升：變更電流後會重新反推熱阻。跨負載比較同一散熱系統，請改用「固定熱阻」。');
+  if(p.mode==='resistor')warnings.push('純電阻近似：Rdc = Re{Z} = |Z|，頻率只改變時間軸；實際頻率效應需用 EIS 或 1RC。');
+  if(p.mode==='eis')warnings.push('單頻 EIS 值不隨頻率自動更新；改頻率時請同步輸入該頻率的 Re{Z} 與 Im{Z}。');
+  if(p.mode==='rc')warnings.push('1RC 為線性近似，未含高頻電感、擴散與非線性；參數需在指定 SOC／溫度辨識。');
+  if(chargePeak>p.vmax||dischargeTrough<p.vmin)warnings.push('目前 OCV 工作點的保守瞬時電壓包络已超出上下限之一。');
+  if(tdc>60||(riseAC!==null&&tdc+riseAC>60))warnings.push('模型溫度超過 60°C，請核對散熱參數及電芯規格，勿外推 Arrhenius 為壽命保證。');
+  if(rows&&!rippleWindow.valid)warnings.push('目前條件下沒有同時符合充／放電峰值限制的 SOC 交集。');
+  if(p.f<1)warnings.push('低頻下凍結 SOC 與線性阻抗假設可能不成立，請使用時域電化學／控制模型。');
+  return {version:VERSION,params:p,peak,pp,rms,totalRMS:Math.hypot(p.idc,rms),imin:p.idc-peak,imax:p.idc+peak,crate:p.idc/p.capacity,rdc,re,im,z,phase,vpeak,vpp,cellVpp:vpp/p.ns,pdc,pac,ptotal:pdc+pac,heatRatio,acShare:pdc+pac>0?pac/(pdc+pac):null,theta,riseDC,riseAC,tdc,tac:riseAC===null?null:tdc+riseAC,ageFactor,ageIncrease:ageFactor===null?null:ageFactor-1,cellOCV,dcDrop,acCellPeak,chargeMean,dischargeMean,chargePeak,dischargeTrough,dcWindow,rippleWindow,lossPP,lossRelative,dcCap,acCap,warnings};
+ }
+ function waveValue(type,angle){if(type==='sine')return Math.sin(angle);if(type==='triangle')return 2/Math.PI*Math.asin(Math.sin(angle));return Math.sin(angle)>=0?1:-1;}
+ function waveform(result,cycles=3,count=601){const p=result.params;return Array.from({length:count},(_,i)=>{const t=cycles/p.f*i/(count-1),a=2*Math.PI*p.f*t,ia=result.peak*waveValue(p.wave,a),va=result.vpeak*waveValue(p.wave,a+result.phase);return {t,iCharge:p.idc+ia,iDischarge:-p.idc+ia,vCharge:result.chargeMean*p.ns+va,vDischarge:result.dischargeMean*p.ns+va};});}
+ const api={VERSION,defaults,demoOCV,validate,parseOCV,ocvAt,windowFor,calculate,waveform};
+ if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.RippleModel=api;
+})(typeof globalThis!=='undefined'?globalThis:this);
+
+</script>
+<script>
+/* DOM adapter, export, accessible SVG plots, optional WebMCP. */
+(function(){'use strict';const M=RippleModel,$=id=>document.getElementById(id);let p={...M.defaults},rows=null,ocvSource='未提供',last=null,activeTab='work';
+ const f=(n,d=4)=>n===null||!Number.isFinite(n)?'—':Number(n).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+ const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const pct=(n,d=4)=>n===null?'—':f(n*100,d)+'%';
+ function fill(){for(const [k,v] of Object.entries(p)){const el=$(k);if(el)el.value=v;}syncFields();}
+ function syncFields(){if(p.mode!=='resistor'){p.wave='sine';$('wave').value='sine';}$('wave').disabled=p.mode!=='resistor';document.querySelectorAll('[data-mode]').forEach(x=>x.classList.toggle('hide',x.dataset.mode!==p.mode));document.querySelectorAll('[data-thermal]').forEach(x=>x.classList.toggle('hide',x.dataset.thermal!==p.thermal));$('ocv').disabled=!!rows;$('soc').disabled=!rows;}
+ function read(){for(const k of Object.keys(M.defaults)){const el=$(k);p[k]=typeof M.defaults[k]==='number'?(el.value.trim()===''?NaN:Number(el.value)):el.value;}syncFields();}
+ function kv(id,items){$(id).innerHTML=items.map(([a,b])=>`<tr><th scope="row">${esc(a)}</th><td>${esc(b)}</td></tr>`).join('');}
+ function plot(target,series,opt={}){
+  const W=760,H=235,L=72,R=25,T=23,B=39;let xs=series.flatMap(s=>s.data.map(a=>a[0])),ys=series.flatMap(s=>s.data.map(a=>a[1]));
+  let xmin=opt.xmin??Math.min(...xs),xmax=opt.xmax??Math.max(...xs),ymin=opt.ymin??Math.min(...ys),ymax=opt.ymax??Math.max(...ys);
+  if(xmax===xmin)xmax=xmin+1;const pad=Math.max((ymax-ymin)*.12,Math.abs(ymax)*.000002,1e-6);ymin-=pad;ymax+=pad;
+  const X=v=>L+(v-xmin)/(xmax-xmin)*(W-L-R),Y=v=>H-B-(v-ymin)/(ymax-ymin)*(H-B-T);
+  const neat=v=>Math.abs(v)>=10000?v.toExponential(1):Math.abs(v)>0&&Math.abs(v)<.001?v.toExponential(1):Number(v.toPrecision(5)).toString();
+  let g=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opt.title||'估算曲線')}"><title>${esc(opt.title||'估算曲線')}</title>`;
+  for(let i=0;i<=4;i++){const v=ymin+(ymax-ymin)*i/4,y=Y(v);g+=`<line x1="${L}" y1="${y}" x2="${W-R}" y2="${y}" stroke="#dfe7ee"/><text x="${L-10}" y="${y+4}" text-anchor="end">${neat(v)}</text>`;}
+  for(let i=0;i<=4;i++){const v=xmin+(xmax-xmin)*i/4,x=X(v);g+=`<text x="${x}" y="${H-17}" text-anchor="middle">${neat(v)}</text>`;}
+  g+=`<text x="${L}" y="14">${esc(opt.yLabel||'')}</text><text x="${W-R}" y="${H-1}" text-anchor="end">${esc(opt.xLabel||'')}</text>`;
+  if(opt.band){const [a,b]=opt.band;if(a!==null&&b!==null&&b>=a)g+=`<rect x="${X(a)}" y="${T}" width="${X(b)-X(a)}" height="${H-T-B}" fill="#43e0bb" opacity=".12"/>`;}
+  for(const s of series){const path=s.data.map(([x,y],i)=>(i?'L':'M')+X(x).toFixed(2)+','+Y(y).toFixed(2)).join(' ');g+=`<path d="${path}" fill="none" stroke="${s.color}" stroke-width="${s.width||2}" ${s.dash?'stroke-dasharray="6 5"':''}/>`;}
+  $(target).innerHTML=g+'</svg>';
+ }
+ function showError(e){$('error').textContent=e.message||String(e);$('error').classList.remove('hide');$('results').classList.add('hide');$('export').disabled=true;last=null;}
+ function redraw(){try{read();last=M.calculate(p,rows);$('error').classList.add('hide');$('results').classList.remove('hide');$('export').disabled=false;render(last);}catch(e){showError(e);}}
+ function render(r){
+  $('metrics').innerHTML=[['額外發熱 / DC 基準',r.heatRatio===null?'—':f(r.heatRatio*100,4),r.heatRatio===null?'':'%',`Pac = ${f(r.pac,6)} W`],['模組電壓 ripple',f(r.vpp*1000,3),'mVpp',`單體 ${f(r.cellVpp*1000,3)} mVpp · ${p.ns} 串`],['额外穩態溫升',f(r.riseAC,5),'K',`${p.thermal==='baseline'?'由基準溫升反推':'固定'} Rθ = ${f(r.theta,4)} K/W`],['溫度老化速率增量',r.ageIncrease===null?'—':f(r.ageIncrease*100,4),r.ageIncrease===null?'':'%',`AF = ${f(r.ageFactor,6)} · 非 SOH 損失`]].map(([a,b,u,c])=>`<div class="metric"><div class="metric-label">${a}</div><strong>${b}<span>${u}</span></strong><small>${c}</small></div>`).join('');
+  kv('electrical',[['AC 峰對峰 / 峰值',`${f(r.pp,4)} / ${f(r.peak,4)} A`],['AC RMS / 含 DC 總 RMS',`${f(r.rms,4)} / ${f(r.totalRMS,4)} A`],['充電最小 / 最大電流',`${f(r.imin,3)} / ${f(r.imax,3)} A`],['DC C-rate',`${f(r.crate,4)} C`],['Rdc / Re{Z}',`${f(r.rdc*1000,4)} / ${f(r.re*1000,4)} mΩ`],['|Z| / 電壓相位',`${f(r.z*1000,4)} mΩ / ${f(r.phase*180/Math.PI,2)}°`],['DC 發熱 Pdc',`${f(r.pdc,6)} W`],['AC 額外發熱 Pac',`${f(r.pac,6)} W`],['總發熱 Ptotal',`${f(r.ptotal,6)} W`],['Pac 占總發熱（不同分母）',pct(r.acShare)]]);
+  kv('thermalResults',[['環境溫度',`${f(p.ambient,2)} °C`],['DC 溫升 / DC 電池溫度',`${f(r.riseDC,3)} K / ${f(r.tdc,3)} °C`],['Ripple 額外溫升',`${f(r.riseAC,6)} K`],['DC + ripple 電池溫度',`${f(r.tac,6)} °C`],['Ea（使用者假設）',`${f(p.ea,1)} kJ/mol`],['速率比 AF',f(r.ageFactor,8)],['相對速率增加',pct(r.ageIncrease,6)]]);
+  $('warnings').innerHTML=r.warnings.map(x=>`<li>${esc(x)}</li>`).join('');
+  const wave=M.waveform(r),chg=$('direction').value==='charge',timeScale=p.f>=1000?1e6:1e3,timeUnit=p.f>=1000?'時間 / µs':'時間 / ms';
+  plot('currentChart',[{data:wave.map(q=>[q.t*timeScale,chg?q.iCharge:q.iDischarge]),color:'#067563'}],{title:chg?'充電電流波形':'放電電流波形',yLabel:'電流 / A',xLabel:timeUnit});
+  plot('voltageChart',[{data:wave.map(q=>[q.t*timeScale,chg?q.vCharge:q.vDischarge]),color:'#0867cc'}],{title:'模組端電壓波形，凍結 OCV 工作點',yLabel:'模組電壓 / V',xLabel:timeUnit});
+  $('voltageNote').textContent=`工作點單體 OCV ${f(r.cellOCV,4)} V。保守包絡：充電最高 ${f(r.chargePeak,5)} V／單體（上限 ${p.vmax} V）；放電最低 ${f(r.dischargeTrough,5)} V／單體（下限 ${p.vmin} V）。波形為固定 OCV 的 3 個周期示意。`;
+  renderSOC(r);renderTradeoff(r);
+ }
+ function renderTradeoff(r){
+  $('tradeoffBasis').textContent=`目前 Idc = ${f(p.idc,3)} A；f = ${f(p.f,0)} Hz；Re{Z}/Rdc = ${r.rdc>0?f(r.re/r.rdc,4):'—'}；${p.thermal==='baseline'?'固定此工作點DC溫升':'固定熱阻'}。單相100/120 Hz評估請填入對應阻抗。`;
+  $('tradeoffRows').innerHTML=[.1,.2,.5,1].map(m=>{const q=M.calculate({...p,wave:'sine',definition:'pp',ripple:2*p.idc*m},rows);return `<tr><td>${f(m*100,0)}%</td><td>${f(q.pp,3)}</td><td>${pct(q.heatRatio,3)}</td><td>${f(q.riseAC,4)}</td><td>${pct(q.ageIncrease,3)}</td></tr>`}).join('');
+ }
+ function renderSOC(r){$('ocvLabel').textContent=ocvSource;
+  if(!rows){$('socOutput').innerHTML='<div class="empty"><strong>尚未提供 OCV 曲線</strong>原稿 0.016% 無法僅憑圖片驗證。貼上實測資料後，可得到上下界、SOC 百分點與 Ah 差異。</div>';$('socChart').innerHTML='';$('socLegend').classList.add('hide');return;}
+  $('socLegend').classList.remove('hide');const w=r.dcWindow,a=r.rippleWindow;
+  const range=v=>v.valid?`${f(v.min,5)}–${f(v.max,5)}%`:'沒有可用交集';
+  $('socOutput').innerHTML=`${ocvSource.includes('示範')?'<div class="note">下列 SOC 結果僅由人工示範曲線算出，不能視為原始電池的修正結論。</div>':''}<div class="soc-results"><div class="soc-card"><h3>DC 電壓窗</h3><strong>${range(w)}</strong><p>範圍 ${f(w.span,5)} 百分點 / ${f(r.dcCap,5)} Ah</p></div><div class="soc-card"><h3>加入 ripple 峰值</h3><strong>${range(a)}</strong><p>範圍 ${f(a.span,5)} 百分點 / ${f(r.acCap,5)} Ah</p></div><div class="soc-card"><h3>SOC 範圍減少</h3><strong>${f(r.lossPP,6)} 百分點</strong><p>相對 DC 縮減 ${pct(r.lossRelative,6)} / ${f(r.dcCap-r.acCap,6)} Ah</p></div></div><p class="hint">單體 DC 偏移 = ${f(r.dcDrop*1000,4)} mV；AC 峰值餘裕 = ${f(r.acCellPeak*1000,4)} mV。分段線性內插的精度由輸入點密度與量測不確定度決定。</p>`;
+  const data=rows.map(([s,v])=>[s,v]),d=r.dcDrop,b=r.acCellPeak;
+  plot('socChart',[{data,color:'#067563'},{data:data.map(([s,v])=>[s,v+d]),color:'#0867cc'},{data:data.map(([s,v])=>[s,v-d]),color:'#0867cc',dash:true},{data:data.map(([s,v])=>[s,v+d+b]),color:'#d97706'},{data:data.map(([s,v])=>[s,v-d-b]),color:'#d97706',dash:true},{data:[[0,p.vmin],[100,p.vmin]],color:'#8796a3',dash:true,width:1},{data:[[0,p.vmax],[100,p.vmax]],color:'#8796a3',dash:true,width:1}],{title:'OCV、DC 端電壓與 ripple 峰值包絡',xLabel:'SOC / %',yLabel:'單體電壓 / V',xmin:0,xmax:100,band:a.valid?[a.min,a.max]:null});
+ }
+ function switchTab(name){activeTab=name;document.querySelectorAll('[data-tab]').forEach(x=>{const b=x.dataset.tab===name;x.setAttribute('aria-selected',b);x.tabIndex=b?0:-1;});document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.id===name));$('calculator').classList.toggle('hide',name==='review'||name==='guide'||name==='deepseekAudit');}
+ function reset(idc){p={...M.defaults,idc};rows=null;ocvSource='尚未提供曲線';$('ocvText').value='';fill();redraw();$('status').textContent=`已重設為 ${idc} A、5.38 App 正弦案例；使用此工作點 DC 溫升 20 K。`;}
+ function useOCV(text,source){const parsed=M.parseOCV(text);rows=parsed;ocvSource=rows?source:'尚未提供曲線';syncFields();redraw();}
+ function snapshot(){if(!last)throw Error('目前參數無效。');return {model_version:M.VERSION,ocv_source:ocvSource,assumptions:'線性小訊號；穩態電阻熱；Arrhenius僅速率敏感度；SOC為保守瞬時電壓窗',parameters:{...p},ocv_table:rows,results:{...last,params:undefined}};}
+ function exportCSV(){const s=snapshot(),out=[['section','parameter','value','unit_or_note'],['meta','model_version',M.VERSION,''],['meta','OCV source',ocvSource,''],['meta','SOH disclaimer','Arrhenius rate increase is NOT SOH loss',''],['meta','SOC interpretation','Static peak voltage window, not full CC-CV usable capacity','']];
+  const units={idc:'A',ripple:'A (see definition)',f:'Hz',r:'module mOhm',rdc:'module mOhm',re:'module mOhm',im:'module mOhm',r0:'module mOhm',rp:'module mOhm',tau:'s',ns:'series cells',capacity:'module Ah',soc:'%',vmin:'cell V',vmax:'cell V',ocv:'cell V',ambient:'degC',rise:'K',theta:'module K/W',ea:'kJ/mol'};
+  Object.entries(p).forEach(([k,v])=>out.push(['input',k,v,units[k]||'category']));
+  const u={peak:'A',pp:'A',rms:'A',totalRMS:'A',imin:'A',imax:'A',crate:'C',rdc:'Ohm',re:'Ohm',im:'Ohm',z:'Ohm',phase:'rad',vpeak:'module V',vpp:'module V',cellVpp:'cell V',pdc:'W',pac:'W',ptotal:'W',heatRatio:'fraction Pac/Pdc',acShare:'fraction Pac/Ptotal',theta:'K/W',riseDC:'K',riseAC:'K',tdc:'degC',tac:'degC',ageFactor:'ratio',ageIncrease:'fraction; NOT SOH',cellOCV:'V',dcDrop:'cell V',acCellPeak:'cell V',chargeMean:'cell V',dischargeMean:'cell V',chargePeak:'cell V',dischargeTrough:'cell V',lossPP:'SOC percentage points',lossRelative:'fraction',dcCap:'Ah (static voltage window)',acCap:'Ah (static voltage window)'};
+  Object.entries(u).forEach(([k,unit])=>out.push(['result',k,last[k]??'undefined',unit]));
+  for(const k of ['dcWindow','rippleWindow'])if(last[k])Object.entries(last[k]).forEach(([a,b])=>out.push(['result',`${k}.${a}`,b??'undefined',a==='valid'?'boolean':'SOC percent / span percentage points']));
+  if(rows)rows.forEach(([a,b])=>out.push(['OCV',a,b,'SOC_percent,OCV_V']));last.warnings.forEach((w,i)=>out.push(['condition',i+1,w,'']));
+  const csv='\ufeff'+out.map(a=>a.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(',')).join('\r\n'),url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download='Battery_Ripple_Estimate.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);$('status').textContent='已產生 CSV：包含參數、單位、曲線來源、估算結果與模型條件。';}
+ $('params').addEventListener('submit',e=>e.preventDefault());$('params').addEventListener('input',()=>{redraw();$('status').textContent='參數已更新。';});$('direction').addEventListener('change',redraw);
+ document.querySelectorAll('[data-tab]').forEach(x=>x.addEventListener('click',()=>switchTab(x.dataset.tab)));
+ document.querySelector('nav').addEventListener('keydown',e=>{const b=[...document.querySelectorAll('[data-tab]')],i=b.indexOf(document.activeElement);if(i<0)return;let j=null;if(e.key==='ArrowRight')j=(i+1)%b.length;if(e.key==='ArrowLeft')j=(i+b.length-1)%b.length;if(e.key==='Home')j=0;if(e.key==='End')j=b.length-1;if(j!==null){e.preventDefault();b[j].focus();switchTab(b[j].dataset.tab);}});
+ document.querySelectorAll('[data-ratio]').forEach(b=>b.onclick=()=>{read();if(M.validate(p).length){redraw();return;}p.f=120;p.wave='sine';p.definition='pp';p.ripple=2*p.idc*Number(b.dataset.ratio);fill();redraw();switchTab('work');$('status').textContent='已套用120 Hz正弦情境；請確認或更新該頻率的實測阻抗。';});
+ $('preset39').onclick=()=>reset(39.03);$('preset75').onclick=()=>reset(75);$('export').onclick=exportCSV;
+ $('demo').onclick=()=>{$('ocvText').value=M.demoOCV;useOCV(M.demoOCV,'示範曲線・非實測');$('status').textContent='已載入人工示範曲線；SOC 結果僅供操作示範。';};
+ $('applyOCV').onclick=()=>{try{const txt=$('ocvText').value;useOCV(txt,txt.trim()===M.demoOCV.trim()?'示範曲線・非實測':'使用者輸入・尚待驗證');$('status').textContent='OCV 曲線已套用。';}catch(e){$('error').textContent=e.message;$('error').classList.remove('hide');$('status').textContent='未套用無效曲線，仍保留先前有效資料。';}};
+ $('clearOCV').onclick=()=>{$('ocvText').value='';useOCV('','尚未提供曲線');$('status').textContent='已清除 OCV 曲線。';};
+ fill();redraw();
+ // Uses the same validation, calculation and visible state as the form.
+ const context=document.modelContext;if(context?.registerTool){const lifecycle=new AbortController();const register=t=>{try{Promise.resolve(context.registerTool(t,{signal:lifecycle.signal})).catch(()=>{});}catch{}};
+  register({name:'read_ripple_estimate',title:'讀取 Ripple 估算',description:'Read the current inputs, model conditions and calculation. No state change.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true},execute:()=>snapshot()});
+  register({name:'configure_ripple_estimate',title:'設定 Ripple 參數',description:'Update specified calculator inputs and the visible estimate. Does not save or export files. Complex impedance modes require sine wave.',inputSchema:{type:'object',properties:Object.fromEntries(Object.entries(M.defaults).map(([k,v])=>[k,{type:typeof v==='number'?'number':'string'}])),additionalProperties:false},annotations:{readOnlyHint:false},execute:input=>{if(!input||typeof input!=='object'||Array.isArray(input))throw Error('需要參數物件。');for(const k of Object.keys(input))if(!(k in M.defaults))throw Error('未知參數 '+k);const next={...p,...input};const r=M.calculate(next,rows);p=next;fill();redraw();return {parameters:{...p},heat_ratio:r.heatRatio,ripple_vpp:r.vpp,temperature_rise:r.riseAC,age_rate_increase:r.ageIncrease};}});
+  window.addEventListener('pagehide',()=>lifecycle.abort(),{once:true});
+ }
+})();
+
+</script>
+<script>
+(() => {
+  "use strict";
+  const byId = id => document.getElementById(id);
+  const number = id => byId(id).valueAsNumber;
+  const finite = (...values) => values.every(Number.isFinite);
+  const fmt = value => value.toLocaleString("zh-TW", {maximumSignificantDigits: 5});
+  const display = (id, values) => {
+    byId(id).innerHTML = values.map(([label, value, unit]) =>
+      `<div>${label}<strong>${value}${unit ? " " + unit : ""}</strong></div>`).join("");
+  };
+  const invalid = (id, chart) => {
+    byId(id).innerHTML = '<p class="note">請輸入有效的數值，並確認參數在欄位所列範圍內。</p>';
+    if (chart) byId(chart).replaceChildren();
+  };
+  const ratio = (n, d) => d > 0 ? fmt(100 * n / d) + "%" : "不適用（DC 為零）";
+  const axisColor = "#586b7a", green = "#067563", blue = "#0867cc", orange = "#b45309";
+  const svgLine = (x1,y1,x2,y2,color=axisColor,dash="") =>
+    `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="2"${dash?' stroke-dasharray="'+dash+'"':""}/>`;
+  const svgText = (x,y,value,anchor="middle") =>
+    `<text x="${x}" y="${y}" text-anchor="${anchor}">${value}</text>`;
+
+  function plot(id, traces, label) {
+    const ys = traces.flatMap(trace => trace.points.map(point => point[1]));
+    const lo = Math.min(0, ...ys), hi = Math.max(0, ...ys);
+    const pad = (hi-lo || 1)*0.10;
+    const px = x => 76 + x*648;
+    const py = y => 181 - 155*(y-lo+pad)/(hi-lo+2*pad);
+    const guides = [...new Set([lo,0,hi])].map(y =>
+      svgLine(76,py(y),724,py(y),"#dbe4ed") + svgText(68,py(y)+4,fmt(y),"end")).join("");
+    const paths = traces.map(({points,color,dash}) => {
+      const d = points.map(([x,y],i) => `${i?"L":"M"}${px(x).toFixed(2)},${py(y).toFixed(2)}`).join(" ");
+      return `<path d="${d}" fill="none" stroke="${color}" stroke-width="${dash?1.4:2.8}"${dash?' stroke-dasharray="6 4"':""}/>`;
+    }).join("");
+    byId(id).innerHTML = guides + svgLine(76,26,76,181) + svgLine(76,181,724,181) +
+      svgText(76,19,label,"start") + svgText(76,205,"0") + svgText(724,205,"1 週期") + paths;
+  }
+
+  function pulse() {
+    const high=number("dsIon"), low=number("dsIoff"), duty=number("dsDuty")/100;
+    const rdc=number("dsRdc")/1000, rac=number("dsRac")/1000;
+    if (!finite(high,low,duty,rdc,rac)||high<low||duty<0||duty>1||rdc<0||rac<0) {
+      invalid("dsHeat","dsPulseChart");
+      return;
+    }
+    const avg=duty*high+(1-duty)*low;
+    const ac=(high-low)*Math.sqrt(duty*(1-duty));
+    const rms=Math.hypot(avg,ac), dcW=avg*avg*rdc, extraW=ac*ac*rac;
+    display("dsHeat",[
+      ["平均電流",fmt(avg),"A"],["總 RMS 電流",fmt(rms),"A"],["AC RMS 電流",fmt(ac),"A"],
+      ["總 RMS 較 DC 增加",ratio(rms-Math.abs(avg),Math.abs(avg)),""],
+      ["純 DC 發熱",fmt(dcW*1000),"mW"],["漣波額外發熱",fmt(extraW*1000),"mW"],
+      ["合計發熱",fmt((dcW+extraW)*1000),"mW"],["發熱較 DC 增加",ratio(extraW,dcW),""]
+    ]);
+    const points=duty===0?[[0,low],[1,low]]:duty===1?[[0,high],[1,high]]:
+      [[0,high],[duty,high],[duty,low],[1,low]];
+    plot("dsPulseChart",[{points,color:green},{points:[[0,avg],[1,avg]],color:blue,dash:true}],"電流（A）");
+  }
+
+  function split() {
+    const f=number("dsFreq"), c=number("dsCap")*1e-6, esr=number("dsEsr")/1000;
+    const esl=number("dsEsl")*1e-9, rb=number("dsRbat")/1000, xb=number("dsXbat")/1000;
+    const injected=number("dsInj");
+    if (!finite(f,c,esr,esl,rb,xb,injected)||f<=0||c<0||esr<0||esl<0||rb<=0||injected<0) {
+      invalid("dsSplit");
+      return;
+    }
+    const omega=2*Math.PI*f, xc=c>0?omega*esl-1/(omega*c):0;
+    const zb=Math.hypot(rb,xb), zc=Math.hypot(esr,xc);
+    const sum=Math.hypot(rb+esr,xb+xc);
+    const batteryGain=c>0?zc/sum:1, capGain=c>0?zb/sum:0;
+    const ib=injected*batteryGain, ic=injected*capGain;
+    display("dsSplit",[
+      ["電池端保留幅度",fmt(100*batteryGain)+"%",""],["電池 AC RMS",fmt(ib),"A"],
+      ["電容 AC RMS",fmt(ic),"A"],["電池端 AC RMS 電壓",fmt(ib*zb*1000),"mV"],
+      ["該頻點的電池額外發熱",fmt(ib*ib*rb*1000),"mW"]
+    ]);
+    if(batteryGain>1) byId("dsSplit").insertAdjacentHTML("beforeend",
+      '<p class="note">這組複數阻抗使電池支路的交流幅值高於注入幅值，請檢查共振與阻抗量測。</p>');
+  }
+
+  function interleave() {
+    const phases=Number(byId("dsPhases").value), duty=number("dsBuckDuty")/100;
+    const vin=number("dsVin"), l=number("dsL")*1e-6, fs=number("dsFs")*1000;
+    if (!finite(duty,vin,l,fs)||duty<=0||duty>=1||vin<=0||l<=0||fs<=0) {
+      invalid("dsInterleave","dsPhaseChart");
+      return;
+    }
+    const scale=vin/(l*fs), pp=scale*duty*(1-duty), q=(phases*duty)%1;
+    const totalPP=scale*q*(1-q)/phases;
+    const frac = x => x-Math.floor(x);
+    const ac = x => (x<duty ? x/duty : (1-x)/(1-duty))*pp - pp/2;
+    const knots=[0,1];
+    for(let i=0;i<phases;i++) knots.push(i/phases,frac(duty+i/phases));
+    knots.sort((a,b)=>a-b);
+    const colors=[blue,orange,"#7557a8","#537188"];
+    const traces=Array.from({length:phases},(_,i)=>({
+      points:knots.map(t=>[t,ac(frac(t-i/phases))]),color:colors[i],dash:true
+    }));
+    traces.push({points:knots.map((t,k)=>[t,traces.reduce((sum,trace)=>sum+trace.points[k][1],0)]),color:green});
+    display("dsInterleave",[
+      ["理想輸出電壓",fmt(vin*duty),"V"],["每相漣波 Ipp",fmt(pp),"A"],
+      ["合流漣波 Ipp",fmt(totalPP),"A"],["相鄰開關相位差",phases>1?fmt(360/phases)+"°":"單相",""]
+    ]);
+    plot("dsPhaseChart",traces,"AC 電流（A）");
+  }
+
+  function circuit() {
+    const mode=Number(byId("dsTopology").value);
+    const ink="#183047", wire=(...pts)=>`<polyline points="${pts.map(p=>p.join(",")).join(" ")}" fill="none" stroke="${ink}" stroke-width="2.3"/>`;
+    const dot=(x,y)=>`<circle cx="${x}" cy="${y}" r="3.5" fill="${ink}"/>`;
+    const open=(x,y)=>`<circle cx="${x}" cy="${y}" r="2.8" fill="white" stroke="${ink}" stroke-width="1.6"/>`;
+    const sw=(x,y,label)=>open(x,y-12)+open(x,y+12)+svgLine(x,y+11,x-11,y-9,blue)+svgText(x-20,y+5,label,"end");
+    const coil=(x,y)=>`<path d="M${x},${y} ${"a10,10 0 0 1 20,0 ".repeat(4)}" fill="none" stroke="${ink}" stroke-width="2.3"/>`;
+    const net=(x,y,label)=>open(x,y)+svgText(x,y-7,label);
+    const leg=(y,n)=>{
+      return net(166,y-58,"Vin")+wire([166,y-58],[166,y-40])+sw(166,y-28,"Q"+n+"H")+
+        wire([166,y-16],[166,y],[166,y+12])+sw(166,y+24,"Q"+n+"L")+
+        wire([166,y+36],[166,y+49],[127,y+49])+open(127,y+49)+svgText(118,y+54,"GND","end")+
+        dot(166,y)+wire([166,y],[271,y])+coil(271,y)+wire([351,y],[449,y])+
+        svgText(310,y-17,"L"+n);
+    };
+    const first=mode===1?120:84, second=205, bus=first;
+    let out=leg(first,1)+wire([449,bus],[681,bus])+dot(449,bus);
+    if(mode>1) out+=leg(second,2)+wire([449,second],[449,first]);
+    if(mode===3) out+=dot(276,first-8)+dot(347,second-8)+
+      svgLine(300,106,300,180,orange,"5 4")+svgLine(320,106,320,180,orange,"5 4")+
+      svgText(338,147,"磁耦合","start");
+    const middle=bus+61, ground=bus+121;
+    out+=wire([535,bus],[535,middle-6])+wire([518,middle-6],[552,middle-6])+
+      wire([518,middle+6],[552,middle+6])+wire([535,middle+6],[535,ground])+svgText(562,middle+6,"Cbat","start")+
+      wire([681,bus],[681,middle-7])+wire([663,middle-7],[699,middle-7])+
+      wire([671,middle+7],[691,middle+7])+wire([681,middle+7],[681,ground])+
+      svgText(710,middle+4,"電池","start")+wire([494,ground],[681,ground])+open(494,ground)+
+      svgText(485,ground+5,"GND","end")+dot(535,bus)+dot(535,ground)+svgText(561,bus-18,"輸出合流點");
+    byId("dsCircuit").innerHTML=out;
+    byId("dsTopologyHint").textContent=[
+      "", "電感輸出到達電池節點後，交流電流按 Cbat 與電池的複數阻抗分流。",
+      "兩組半橋的 PWM 相差 180°，L1、L2 在輸出節點合流，再分流至 Cbat 與電池。",
+      "圖示為反向點標示的雙相耦合電感。效果取決於自感、互感、繞向、占空比及工作模式。"
+    ][mode];
+  }
+
+  const bind = (ids, update) => {
+    ids.forEach(id=>byId(id).addEventListener("input",update));
+    update();
+  };
+  bind(["dsIon","dsIoff","dsDuty","dsRdc","dsRac"],pulse);
+  bind(["dsFreq","dsCap","dsEsr","dsEsl","dsRbat","dsXbat","dsInj"],split);
+  bind(["dsPhases","dsBuckDuty","dsVin","dsL","dsFs"],interleave);
+  bind(["dsTopology"],circuit);
+  document.querySelectorAll("[data-ds-freq]").forEach(button=>button.addEventListener("click",()=>{
+    byId("dsFreq").value=button.dataset.dsFreq;
+    split();
+  }));
+})();
+</script>
+</body></html>
